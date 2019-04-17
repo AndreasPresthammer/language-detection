@@ -33,7 +33,7 @@ public class GenProfile {
      */
     public static LangProfile loadFromWikipediaAbstract(String lang, File file) throws LangDetectException {
 
-        LangProfile profile = new LangProfile(lang);
+        LangProfile profile = new LangProfile(lang, null, null);
 
         BufferedReader br = null;
         try {
@@ -90,7 +90,7 @@ public class GenProfile {
      */
     public static LangProfile loadFromText(String lang, File file) throws LangDetectException {
 
-        LangProfile profile = new LangProfile(lang);
+        LangProfile profile = new LangProfile(lang, null, null);
 
         BufferedReader is = null;
         try {

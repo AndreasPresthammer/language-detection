@@ -4,12 +4,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 
-import net.arnx.jsonic.JSON;
-import net.arnx.jsonic.JSONException;
+import org.eclipse.jetty.util.ajax.JSON;
 
 import com.cybozu.labs.langdetect.util.LangProfile;
 
@@ -55,6 +56,20 @@ public class DetectorFactory {
         loadProfile(new File(profileDirectory));
     }
 
+    private static LangProfile makeProfile(HashMap profileData) {
+        HashMap<String, Long> freqData = (HashMap) profileData.get("freq");
+        Object[] n_wordsData = (Object[]) profileData.get("n_words");
+        HashMap freq = new HashMap<String, Integer>();
+        for (Map.Entry<String, Long> entry : freqData.entrySet()) {
+            freq.put(entry.getKey(), entry.getValue().intValue());
+        }
+        int[] n_words = new int[n_wordsData.length];
+        for (int i = 0; i < n_wordsData.length; i++) {
+            n_words[i] = ((Long) n_wordsData[i]).intValue();
+        }
+        return new LangProfile((String) profileData.get("name"), freq, n_words);
+    }
+
     /**
      * Load profiles from specified directory.
      * This method must be called once before language detection.
@@ -74,11 +89,10 @@ public class DetectorFactory {
             FileInputStream is = null;
             try {
                 is = new FileInputStream(file);
-                LangProfile profile = JSON.decode(is, LangProfile.class);
+                HashMap profileData = (HashMap<String, Object>) JSON.parse(is);
+                LangProfile profile = makeProfile(profileData);
                 addProfile(profile, index, langsize);
                 ++index;
-            } catch (JSONException e) {
-                throw new LangDetectException(ErrorCode.FormatError, "profile format error in '" + file.getName() + "'");
             } catch (IOException e) {
                 throw new LangDetectException(ErrorCode.FileLoadError, "can't open '" + file.getName() + "'");
             } finally {
@@ -104,13 +118,10 @@ public class DetectorFactory {
             throw new LangDetectException(ErrorCode.NeedLoadProfileError, "Need more than 2 profiles");
             
         for (String json: json_profiles) {
-            try {
-                LangProfile profile = JSON.decode(json, LangProfile.class);
-                addProfile(profile, index, langsize);
-                ++index;
-            } catch (JSONException e) {
-                throw new LangDetectException(ErrorCode.FormatError, "profile format error");
-            }
+            HashMap profileData = (HashMap<String, Object>) JSON.parse(json);
+            LangProfile profile = makeProfile(profileData);
+            addProfile(profile, index, langsize);
+            ++index;
         }
     }
 

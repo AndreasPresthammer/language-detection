@@ -13,9 +13,6 @@ import java.util.HashSet;
 
 import com.cybozu.labs.langdetect.util.LangProfile;
 
-import net.arnx.jsonic.JSON;
-import net.arnx.jsonic.JSONException;
-
 /**
  * 
  * LangDetect Command Line Interface
@@ -111,91 +108,6 @@ public class Command {
         } catch (LangDetectException e) {
             System.err.println("ERROR: " + e.getMessage());
             return true;
-        }
-    }
-    
-    /**
-     * Generate Language Profile from Wikipedia Abstract Database File
-     * 
-     * <pre>
-     * usage: --genprofile -d [abstracts directory] [language names]
-     * </pre>
-     * 
-     */
-    public void generateProfile() {
-        File directory = new File(get("directory"));
-        for (String lang: arglist) {
-            File file = searchFile(directory, lang + "wiki-.*-abstract\\.xml.*");
-            if (file == null) {
-                System.err.println("Not Found abstract xml : lang = " + lang);
-                continue;
-            }
-
-            FileOutputStream os = null;
-            try {
-                LangProfile profile = GenProfile.loadFromWikipediaAbstract(lang, file);
-                profile.omitLessFreq();
-
-                File profile_path = new File(get("directory") + "/profiles/" + lang);
-                os = new FileOutputStream(profile_path);
-                JSON.encode(profile, os);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (LangDetectException e) {
-                e.printStackTrace();
-            } finally {
-                try {
-                    if (os!=null) os.close();
-                } catch (IOException e) {}
-            }
-        }        
-    }
-
-    /**
-     * Generate Language Profile from Text File
-     * 
-     * <pre>
-     * usage: --genprofile-text -l [language code] [text file path]
-     * </pre>
-     * 
-     */
-    private void generateProfileFromText() {
-        if (arglist.size() != 1) {
-            System.err.println("Need to specify text file path");
-            return;
-        }
-        File file = new File(arglist.get(0));
-        if (!file.exists()) {
-            System.err.println("Need to specify existing text file path");
-            return;
-        }
-
-        String lang = get("lang");
-        if (lang == null) {
-            System.err.println("Need to specify langage code(-l)");
-            return;
-        }
-
-        FileOutputStream os = null;
-        try {
-            LangProfile profile = GenProfile.loadFromText(lang, file);
-            profile.omitLessFreq();
-
-            File profile_path = new File(lang);
-            os = new FileOutputStream(profile_path);
-            JSON.encode(profile, os);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (LangDetectException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (os!=null) os.close();
-            } catch (IOException e) {}
         }
     }
 
@@ -321,11 +233,7 @@ public class Command {
         command.addOpt("-l", "lang", null);
         command.parse(args);
 
-        if (command.hasOpt("--genprofile")) {
-            command.generateProfile();
-        } else if (command.hasOpt("--genprofile-text")) {
-            command.generateProfileFromText();
-        } else if (command.hasOpt("--detectlang")) {
+        if (command.hasOpt("--detectlang")) {
             command.detectLang();
         } else if (command.hasOpt("--batchtest")) {
             command.batchTest();

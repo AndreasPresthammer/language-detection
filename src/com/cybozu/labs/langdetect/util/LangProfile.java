@@ -26,8 +26,10 @@ public class LangProfile {
      * Normal Constructor
      * @param name language name
      */
-    public LangProfile(String name) {
+    public LangProfile(String name, HashMap freq, int[] n_words) {
         this.name = name;
+        this.freq = freq;
+        this.n_words = n_words;
     }
     
     /**
